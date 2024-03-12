@@ -1,0 +1,5 @@
+display_name_provider: OpenShift Virtualization
+provider: Red Hat
+maintainer_name: KubeVirt Tekton tasks maintainers
+maintainer_email: kubevirt-tekton-tasks@redhat.com
+recommendation_url: https://kubevirt.io/
