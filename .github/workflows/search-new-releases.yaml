@@ -1,0 +1,23 @@
+name: Search new OCP V releases
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install skopeo
+      run: sudo apt-get install skopeo
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: 'go.mod'
+    - name: Publish tekton images and generate release manifests
+      run: |
+        # Authenticate with gh cli
+        echo "${{ secrets.ACTIONS_TOKEN }}" > token.txt
+        gh auth login --with-token < token.txt
+        rm token.txt
+        ./check-for-new-release.sh
