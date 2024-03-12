@@ -19,6 +19,6 @@ do
 	rm -r "tasks/${TASK_NAME}"
 done
 #delete pipelines, which are not published
-rm -r "pipelines/windows-bios-installer" "pipelines/windows/customize"
+rm -r "release/pipelines/windows-bios-installer" "release/pipelines/windows/customize"
 
 ../run-catalog-cd.sh
