@@ -22,5 +22,5 @@ jobs:
         REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       shell: bash
       run: |
-        skopeo login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} registry.redhat.io
+        skopeo login -u="$REGISTRY_USERNAME" -p="$REGISTRY_PASSWORD" registry.redhat.io
         ./check-for-new-release.sh
