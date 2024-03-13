@@ -17,13 +17,13 @@ curl -L https://github.com/openshift-pipelines/catalog-cd/releases/download/${ca
 
 task_names=""
 
-for task_name in tasks/*/; do
+for task_name in release/tasks/*/; do
     task_names="${task_names} ${task_name}"
 done
 
 mkdir -p release/catalog-cd
 
-./catalog-cd/catalog-cd release --output release/catalog-cd --version="${RELEASE_VERSION}" ${task_names}
+./catalog-cd/catalog-cd release --output release/catalog-cd --version="${RELEASE_VERSION}" ${task_names} release/pipelines/windows-efi-installer
 
 # clean up
 rm -r catalog-cd || true

@@ -1,8 +1,5 @@
 name: Search new OCP V releases
-on:
-  pull_request:
-    branches: [ main ]
-
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,9 +12,12 @@ jobs:
       with:
         go-version-file: 'go.mod'
     - name: Publish tekton images and generate release manifests
+      env:
+        GH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        USERNAME: ${{ secrets.USERNAME }}
+        REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      shell: bash
       run: |
-        # Authenticate with gh cli
-        echo "${{ secrets.ACTIONS_TOKEN }}" > token.txt
-        gh auth login --with-token < token.txt
-        rm token.txt
+        skopeo login -u "${{ secrets.REGISTRY_USERNAME }}" -p "${{ secrets.REGISTRY_PASSWORD }}" registry.redhat.io
         ./check-for-new-release.sh

@@ -63,8 +63,6 @@ func createNewReleases(newTags map[string]*semver.Version) error {
 			return err
 		}
 
-		tag = semver.MustParse("v0.0.1-alpha.1") //replace tag with a testing tag - remove in the future
-		tektonTaskBranch = "main"                //hardcode branch - remove in the future
 		err = generateManifests(tag.String(), tektonTaskBranch)
 		if err != nil {
 			log.Fatal("err during generation of manifests: " + err.Error())

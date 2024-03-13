@@ -30,7 +30,7 @@ func main() {
 		options.DryRun, "don't create anything")
 
 	var set bool
-	if options.GitToken, set = os.LookupEnv("ACTIONS_TOKEN"); !set {
+	if options.GitToken, set = os.LookupEnv("GH_TOKEN"); !set {
 		log.Fatal("Github token is not set")
 	}
 	if options.Username, set = os.LookupEnv("USERNAME"); !set {
