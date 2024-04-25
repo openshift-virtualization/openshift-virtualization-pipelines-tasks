@@ -8,8 +8,8 @@ git checkout "${RELEASE_BRANCH}"
 
 cp -r "../ansible/." "scripts/ansible/"
 
-find configs/*.yaml -type f -print0 | xargs -0 sed -i "s/quay.io\/kubevirt\/tekton-tasks/registry.access.redhat.com\/container-native-virtualization\/kubevirt-tekton-tasks-create-datavolume-rhel9/g"
-find configs/*.yaml -type f -print0 | xargs -0 sed -i "s/quay.io\/kubevirt\/tekton-tasks-disk-virt/registry.access.redhat.com\/container-native-virtualization\/kubevirt-tekton-tasks-disk-virt-customize-rhel9/g"
+find configs/*.yaml -type f -print0 | xargs -0 sed -i "s/quay.io\/kubevirt\/tekton-tasks/registry.redhat.io\/container-native-virtualization\/kubevirt-tekton-tasks-create-datavolume-rhel9/g"
+find configs/*.yaml -type f -print0 | xargs -0 sed -i "s/quay.io\/kubevirt\/tekton-tasks-disk-virt/registry.redhat.io\/container-native-virtualization\/kubevirt-tekton-tasks-disk-virt-customize-rhel9/g"
 
 make generate-yaml-tasks
 make generate-pipelines
