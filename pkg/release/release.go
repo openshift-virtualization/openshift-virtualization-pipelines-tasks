@@ -63,7 +63,7 @@ func createNewReleases(newTags map[string]*semver.Version) error {
 			return err
 		}
 
-		err = generateManifests(tag.String(), tektonTaskBranch)
+		err = generateManifests(tag.Original(), tektonTaskBranch)
 		if err != nil {
 			log.Fatal("err during generation of manifests: " + err.Error())
 		}

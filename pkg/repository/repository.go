@@ -13,8 +13,8 @@ import (
 
 func CreateRelease(tag *semver.Version) error {
 	generalNotes := "Release of OpenShift Virtualization Tekton tasks"
-	args := []string{"release", "create", tag.String(), "kubevirt-tekton-tasks/release/catalog-cd/resources.tar.gz",
-		"kubevirt-tekton-tasks/release/catalog-cd/catalog.yaml", "-R", "openshift-cnv/openshift-virtualization-pipelines-tasks", "-t", tag.String(),
+	args := []string{"release", "create", tag.Original(), "kubevirt-tekton-tasks/release/catalog-cd/resources.tar.gz",
+		"kubevirt-tekton-tasks/release/catalog-cd/catalog.yaml", "-R", "openshift-cnv/openshift-virtualization-pipelines-tasks", "-t", tag.Original(),
 		"-n", generalNotes}
 	_, _, err := gh.Exec(args...)
 
@@ -31,7 +31,7 @@ func GetNewTags(oCPVTags, pTTags []*semver.Version) map[string]*semver.Version {
 			}
 		}
 		if !found {
-			newTags[oCPVTag.String()] = oCPVTag
+			newTags[oCPVTag.Original()] = oCPVTag
 		}
 	}
 	return newTags
