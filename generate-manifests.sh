@@ -4,7 +4,6 @@ gh repo clone kubevirt/kubevirt-tekton-tasks
 cd kubevirt-tekton-tasks || exit 1
 
 git fetch origin
-git checkout "${RELEASE_BRANCH}"
 
 cp -r "../ansible/." "scripts/ansible/"
 

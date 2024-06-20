@@ -2,3 +2,7 @@ os_image_namespace: openshift-virtualization-os-images
 catalog: redhat-tekton-tasks
 catalog_type: artifact
 pipelines_catalog: redhat-pipelines
+
+openshift_client_catalog: tekton-catalog-tasks
+openshift_client_task_version: 0.2.0
+openshift_client_oc_version: latest

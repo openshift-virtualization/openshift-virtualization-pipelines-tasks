@@ -5,5 +5,5 @@ maintainer_email: kubevirt-tekton-tasks@redhat.com
 recommendation_url: https://kubevirt.io/
 virt_project: OpenShift Virtualization
 tekton_project: OpenShift Pipelines
-virt_project_version: v4.13.0
+virt_project_version: v4.15.0
 tekton_project_version: v1.11.0
