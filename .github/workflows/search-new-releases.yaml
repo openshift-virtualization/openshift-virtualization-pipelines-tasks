@@ -1,5 +1,7 @@
 name: Search new OCP V releases
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: "0 0 * * *"
 jobs:
   build:
     runs-on: ubuntu-latest
