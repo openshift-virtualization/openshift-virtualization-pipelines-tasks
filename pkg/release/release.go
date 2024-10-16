@@ -52,18 +52,8 @@ func ProcessNewReleases(options *util.Options) {
 }
 
 func createNewReleases(newTags map[string]*semver.Version) error {
-	mapping, err := util.LoadUpstreamSources()
-	if err != nil {
-		log.Fatal("err during loading upstream sources: " + err.Error())
-	}
-
 	for _, tag := range newTags {
-		tektonTaskBranch, err := util.GetTektonTasksBranch(mapping, fmt.Sprintf("%v.%v", tag.Major(), tag.Minor()))
-		if err != nil {
-			return err
-		}
-
-		err = generateManifests(tag.Original(), tektonTaskBranch)
+		err := generateManifests(tag.Original())
 		if err != nil {
 			log.Fatal("err during generation of manifests: " + err.Error())
 		}
@@ -76,9 +66,8 @@ func createNewReleases(newTags map[string]*semver.Version) error {
 	return nil
 }
 
-func generateManifests(tag, branch string) error {
+func generateManifests(tag string) error {
 	os.Setenv("RELEASE_VERSION", tag)
-	os.Setenv("RELEASE_BRANCH", branch)
 	cmd := exec.Command("bash", "-c", "./generate-manifests.sh")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stdout
