@@ -5,6 +5,9 @@ cd kubevirt-tekton-tasks || exit 1
 
 git fetch origin
 
+upstream_commit=$(skopeo inspect "docker://registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9:${RELEASE_VERSION}" | jq -r '.Labels."upstream-vcs-ref"')
+git checkout "${upstream_commit}"
+
 cp -r "../ansible/." "scripts/ansible/"
 
 find configs/*.yaml -type f -print0 | xargs -0 sed -i "s/quay.io\/kubevirt\/tekton-tasks-disk-virt/registry.redhat.io\/container-native-virtualization\/kubevirt-tekton-tasks-disk-virt-customize-rhel9/g"
