@@ -9,9 +9,9 @@ const (
 	channelCandidate = `{"schema":"olm.channel","name":"candidate","package":"kubevirt-hyperconverged","entries":[{"name":"kubevirt-hyperconverged-operator.v4.22.5"}]}`
 	channelStable    = `{"schema":"olm.channel","name":"stable","package":"kubevirt-hyperconverged","entries":[{"name":"kubevirt-hyperconverged-operator.v4.22.0"},{"name":"kubevirt-hyperconverged-operator.v4.22.2"}]}`
 
-	bundleStableWinner = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.2","package":"kubevirt-hyperconverged","relatedImages":[{"name":"unrelated","image":"registry.redhat.io/container-native-virtualization/hco-bundle-registry-rhel9@sha256:unrelated"},{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:winnerdigest"}]}`
-	bundleStableOlder  = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.0","package":"kubevirt-hyperconverged","relatedImages":[{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:olderdigest"}]}`
-	bundleCandidate    = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.5","package":"kubevirt-hyperconverged","relatedImages":[{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:candidatedigest"}]}`
+	bundleStableWinner = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.2","package":"kubevirt-hyperconverged","relatedImages":[{"name":"unrelated","image":"registry.redhat.io/container-native-virtualization/hco-bundle-registry-rhel9@sha256:unrelated"},{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:winnerdigest"},{"name":"disk-virt","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@sha256:winnerdiskvirt"},{"name":"virtio-win","image":"registry.redhat.io/container-native-virtualization/virtio-win-rhel9@sha256:winnervirtiowin"}]}`
+	bundleStableOlder  = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.0","package":"kubevirt-hyperconverged","relatedImages":[{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:olderdigest"},{"name":"disk-virt","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@sha256:olderdiskvirt"},{"name":"virtio-win","image":"registry.redhat.io/container-native-virtualization/virtio-win-rhel9@sha256:oldervirtiowin"}]}`
+	bundleCandidate    = `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.5","package":"kubevirt-hyperconverged","relatedImages":[{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:candidatedigest"},{"name":"disk-virt","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@sha256:candidatediskvirt"},{"name":"virtio-win","image":"registry.redhat.io/container-native-virtualization/virtio-win-rhel9@sha256:candidatevirtiowin"}]}`
 )
 
 func joinObjects(objs ...string) string {
@@ -28,8 +28,14 @@ func TestParseStableRelease_HappyPath(t *testing.T) {
 	if release.Version.Original() != "v4.22.2" {
 		t.Errorf("expected stable version v4.22.2 (not the newer candidate v4.22.5), got %s", release.Version.Original())
 	}
-	if release.ImageDigest != "sha256:winnerdigest" {
-		t.Errorf("expected digest sha256:winnerdigest, got %s", release.ImageDigest)
+	if release.ImageDigests[TektonTasksImageName] != "sha256:winnerdigest" {
+		t.Errorf("expected tekton-tasks digest sha256:winnerdigest, got %s", release.ImageDigests[TektonTasksImageName])
+	}
+	if release.ImageDigests[DiskVirtImageName] != "sha256:winnerdiskvirt" {
+		t.Errorf("expected disk-virt digest sha256:winnerdiskvirt, got %s", release.ImageDigests[DiskVirtImageName])
+	}
+	if release.ImageDigests[VirtioWinImageName] != "sha256:winnervirtiowin" {
+		t.Errorf("expected virtio-win digest sha256:winnervirtiowin, got %s", release.ImageDigests[VirtioWinImageName])
 	}
 }
 
@@ -48,8 +54,8 @@ func TestParseStableRelease_OrderIndependence(t *testing.T) {
 		if release.Version.Original() != "v4.22.2" {
 			t.Errorf("ordering %d: expected v4.22.2, got %s", i, release.Version.Original())
 		}
-		if release.ImageDigest != "sha256:winnerdigest" {
-			t.Errorf("ordering %d: expected sha256:winnerdigest, got %s", i, release.ImageDigest)
+		if release.ImageDigests[TektonTasksImageName] != "sha256:winnerdigest" {
+			t.Errorf("ordering %d: expected sha256:winnerdigest, got %s", i, release.ImageDigests[TektonTasksImageName])
 		}
 	}
 }
@@ -79,7 +85,20 @@ func TestParseStableRelease_NoMatchingRelatedImage(t *testing.T) {
 
 	_, err := parseStableRelease(strings.NewReader(data))
 	if err == nil {
-		t.Fatal("expected error when the winning bundle has no matching related image, got nil")
+		t.Fatal("expected error when the winning bundle has no matching tracked images, got nil")
+	}
+}
+
+func TestParseStableRelease_MissingTrackedImage(t *testing.T) {
+	bundleMissing := `{"schema":"olm.bundle","name":"kubevirt-hyperconverged-operator.v4.22.2","package":"kubevirt-hyperconverged","relatedImages":[{"name":"tekton-tasks","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-create-datavolume-rhel9@sha256:winnerdigest"},{"name":"disk-virt","image":"registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@sha256:winnerdiskvirt"}]}`
+	data := joinObjects(channelStable, bundleMissing)
+
+	_, err := parseStableRelease(strings.NewReader(data))
+	if err == nil {
+		t.Fatal("expected error when a tracked image is missing from the winning bundle, got nil")
+	}
+	if !strings.Contains(err.Error(), VirtioWinImageName) {
+		t.Errorf("expected error to mention missing image %q, got: %v", VirtioWinImageName, err)
 	}
 }
 
