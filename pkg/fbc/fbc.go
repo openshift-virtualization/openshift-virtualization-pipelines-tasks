@@ -22,11 +22,11 @@ const (
 )
 
 // StreamRelease describes the highest version available in the "stable"
-// channel of a single OCP-V major.minor stream, and the pinned digest of the
-// kubevirt-tekton-tasks image that ships with it.
+// channel of a single OCP-V major.minor stream, and the pinned digests of
+// all tracked images that ship with it.
 type StreamRelease struct {
-	Version     *semver.Version
-	ImageDigest string
+	Version      *semver.Version
+	ImageDigests map[string]string // image short name → digest (e.g. "sha256:abc...")
 }
 
 // catalogTree is the subset of a git tree needed to look up per-stream

@@ -14,14 +14,16 @@ const (
 	stableChannelName = "stable"
 	bundleNamePrefix  = "kubevirt-hyperconverged-operator."
 
-	// TektonTasksImageName is the short (registry-less) name of the
-	// kubevirt-tekton-tasks image whose digest we track. It is the single
-	// source of truth for this name: callers that need the full image
-	// reference (e.g. generate-manifests.sh, via the RELEASE_IMAGE_NAME env
-	// var set in pkg/release) build it from this constant rather than
-	// hardcoding it again.
 	TektonTasksImageName = "kubevirt-tekton-tasks-create-datavolume-rhel9"
+	DiskVirtImageName    = "kubevirt-tekton-tasks-disk-virt-customize-rhel9"
+	VirtioWinImageName   = "virtio-win-rhel9"
 )
+
+var TrackedImageNames = []string{
+	TektonTasksImageName,
+	DiskVirtImageName,
+	VirtioWinImageName,
+}
 
 // fbcObject is a superset of the fields we need across the different FBC
 // schema variants ("olm.package", "olm.channel", "olm.bundle") that appear,
@@ -40,14 +42,14 @@ type fbcObject struct {
 
 // parseStableRelease reads a catalog.json stream (a sequence of concatenated
 // JSON objects, not a single JSON document) and returns the highest version
-// found in the "stable" channel along with the digest of the
-// kubevirt-tekton-tasks-create-datavolume-rhel9 image used by that version's
-// bundle.
+// found in the "stable" channel along with the digests of all tracked images
+// used by that version's bundle.
 func parseStableRelease(r io.Reader) (*StreamRelease, error) {
 	dec := json.NewDecoder(r)
 
 	var stableEntryNames []string
-	bundleDigests := make(map[string]string)
+	// bundleDigests[bundleName][imageName] = digest
+	bundleDigests := make(map[string]map[string]string)
 
 	for {
 		var obj fbcObject
@@ -67,11 +69,15 @@ func parseStableRelease(r io.Reader) (*StreamRelease, error) {
 			}
 		case "olm.bundle":
 			for _, ri := range obj.RelatedImages {
-				if strings.Contains(ri.Image, TektonTasksImageName) {
-					if digest := digestFromImageRef(ri.Image); digest != "" {
-						bundleDigests[obj.Name] = digest
+				for _, tracked := range TrackedImageNames {
+					if strings.Contains(ri.Image, tracked) {
+						if digest := digestFromImageRef(ri.Image); digest != "" {
+							if bundleDigests[obj.Name] == nil {
+								bundleDigests[obj.Name] = make(map[string]string)
+							}
+							bundleDigests[obj.Name][tracked] = digest
+						}
 					}
-					break
 				}
 			}
 		}
@@ -93,12 +99,17 @@ func parseStableRelease(r io.Reader) (*StreamRelease, error) {
 		return nil, fmt.Errorf("no %q channel entries found", stableChannelName)
 	}
 
-	digest, ok := bundleDigests[highestBundleName]
-	if !ok {
-		return nil, fmt.Errorf("no related image digest for bundle %q matching %q", highestBundleName, TektonTasksImageName)
+	digests, ok := bundleDigests[highestBundleName]
+	if !ok || len(digests) == 0 {
+		return nil, fmt.Errorf("no related image digests for bundle %q", highestBundleName)
+	}
+	for _, name := range TrackedImageNames {
+		if _, found := digests[name]; !found {
+			return nil, fmt.Errorf("bundle %q is missing digest for tracked image %q", highestBundleName, name)
+		}
 	}
 
-	return &StreamRelease{Version: highest, ImageDigest: digest}, nil
+	return &StreamRelease{Version: highest, ImageDigests: digests}, nil
 }
 
 func digestFromImageRef(imageRef string) string {
