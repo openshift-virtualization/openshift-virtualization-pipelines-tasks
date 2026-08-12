@@ -82,6 +82,12 @@ func resolveStreamReleases(streams []string, tree catalogTree) (map[string]*Stre
 			continue
 		}
 
+		resolvedStream := fmt.Sprintf("%d.%d", release.Version.Major(), release.Version.Minor())
+		if resolvedStream != stream {
+			log.Printf("fbc: stream %s: highest stable version %s does not belong to this stream, skipping", stream, release.Version.Original())
+			continue
+		}
+
 		results[stream] = release
 	}
 

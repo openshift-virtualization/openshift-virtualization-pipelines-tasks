@@ -104,3 +104,23 @@ func TestResolveStreamReleases_NoStreamsRequestedReturnsError(t *testing.T) {
 		t.Fatal("expected an error when no streams are requested, got nil")
 	}
 }
+
+func TestResolveStreamReleases_CrossStreamVersionIsSkipped(t *testing.T) {
+	tree := &fakeCatalogTree{
+		contentByPath: map[string]string{
+			catalogPath("4.22"): joinObjects(channelStable, bundleStableWinner, bundleStableOlder),
+			catalogPath("4.23"): joinObjects(channelStable, bundleStableWinner, bundleStableOlder),
+		},
+	}
+
+	results, err := resolveStreamReleases([]string{"4.22", "4.23"}, tree)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := results["4.22"]; !ok {
+		t.Error("expected stream 4.22 to resolve (version matches stream)")
+	}
+	if _, ok := results["4.23"]; ok {
+		t.Error("expected stream 4.23 to be skipped because its highest stable version (v4.22.2) does not belong to the 4.23 stream")
+	}
+}

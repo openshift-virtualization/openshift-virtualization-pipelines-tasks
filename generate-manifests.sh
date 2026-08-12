@@ -30,12 +30,11 @@ git checkout "${upstream_commit}" || exit 1
 
 cp -r "../ansible/." "scripts/ansible/"
 
-find configs/*.yaml -type f -print0 | xargs -0 sed -i "s|quay.io/kubevirt/tekton-tasks-disk-virt[^ \"]*|registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@${DISK_VIRT_IMAGE_DIGEST}|g"
-find configs/*.yaml -type f -print0 | xargs -0 sed -i "s|quay.io/kubevirt/tekton-tasks[^ \"]*|registry.redhat.io/container-native-virtualization/${TEKTON_TASKS_IMAGE_NAME}@${TEKTON_TASKS_IMAGE_DIGEST}|g"
-
 make generate-yaml-tasks
 make generate-pipelines
 
+find release/tasks/*/*.yaml release/pipelines/*/*.yaml -type f -print0 | xargs -0 sed -i "s|quay.io/kubevirt/tekton-tasks-disk-virt[^ \"]*|registry.redhat.io/container-native-virtualization/kubevirt-tekton-tasks-disk-virt-customize-rhel9@${DISK_VIRT_IMAGE_DIGEST}|g"
+find release/tasks/*/*.yaml release/pipelines/*/*.yaml -type f -print0 | xargs -0 sed -i "s|quay.io/kubevirt/tekton-tasks[^ \"]*|registry.redhat.io/container-native-virtualization/${TEKTON_TASKS_IMAGE_NAME}@${TEKTON_TASKS_IMAGE_DIGEST}|g"
 find release/pipelines/*/*.yaml -type f -print0 | xargs -0 sed -i "s|quay.io/kubevirt/virtio-container-disk[^ \"]*|registry.redhat.io/container-native-virtualization/virtio-win-rhel9@${VIRTIO_WIN_IMAGE_DIGEST}|g"
 
 #delete tasks, which are not published
